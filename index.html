@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YT·INTEL — Top 50 Extractor</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:       #0c0c0e;
+      --surface:  #131316;
+      --border:   #222228;
+      --border2:  #2e2e38;
+      --gold:     #f0c040;
+      --gold-dim: #a07e1a;
+      --green:    #3dffa0;
+      --red:      #ff5757;
+      --text:     #e8e8f0;
+      --muted:    #6b6b80;
+      --mono:     'IBM Plex Mono', monospace;
+      --sans:     'IBM Plex Sans', sans-serif;
+      --display:  'Bebas Neue', sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 14px;
+      line-height: 1.6;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Grain overlay ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 9999;
+      opacity: 0.4;
+    }
+
+    /* ── Top bar ── */
+    header {
+      border-bottom: 1px solid var(--border);
+      padding: 0 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 56px;
+      position: sticky;
+      top: 0;
+      background: var(--bg);
+      z-index: 100;
+    }
+
+    .logo {
+      font-family: var(--display);
+      font-size: 22px;
+      letter-spacing: 2px;
+      color: var(--gold);
+    }
+
+    .logo span {
+      color: var(--muted);
+      font-size: 11px;
+      font-family: var(--mono);
+      letter-spacing: 1px;
+      vertical-align: middle;
+      margin-left: 10px;
+    }
+
+    .badge {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 1px;
+      color: var(--muted);
+      border: 1px solid var(--border2);
+      padding: 3px 8px;
+      border-radius: 2px;
+    }
+
+    /* ── Layout ── */
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 48px 40px 80px;
+    }
+
+    /* ── Hero ── */
+    .hero {
+      margin-bottom: 48px;
+    }
+
+    .hero-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 3px;
+      color: var(--gold);
+      text-transform: uppercase;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .hero-label::before {
+      content: '';
+      display: inline-block;
+      width: 24px;
+      height: 1px;
+      background: var(--gold);
+    }
+
+    h1 {
+      font-family: var(--display);
+      font-size: clamp(42px, 6vw, 72px);
+      letter-spacing: 3px;
+      line-height: 1;
+      color: var(--text);
+      margin-bottom: 16px;
+    }
+
+    h1 em {
+      font-style: normal;
+      color: var(--gold);
+    }
+
+    .hero-desc {
+      color: var(--muted);
+      font-size: 14px;
+      max-width: 520px;
+      line-height: 1.7;
+    }
+
+    /* ── Form card ── */
+    .form-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 32px;
+      margin-bottom: 40px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .form-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--gold) 0%, transparent 60%);
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
+      gap: 16px;
+      align-items: end;
+    }
+
+    @media (max-width: 720px) {
+      .form-grid { grid-template-columns: 1fr; }
+      main { padding: 32px 20px 60px; }
+      header { padding: 0 20px; }
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    label {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    input {
+      background: var(--bg);
+      border: 1px solid var(--border2);
+      border-radius: 3px;
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 13px;
+      padding: 10px 14px;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      width: 100%;
+    }
+
+    input::placeholder { color: var(--muted); opacity: 0.6; }
+
+    input:focus {
+      border-color: var(--gold-dim);
+      box-shadow: 0 0 0 3px rgba(240, 192, 64, 0.08);
+    }
+
+    /* ── Buttons ── */
+    .btn-primary {
+      background: var(--gold);
+      color: #0c0c0e;
+      font-family: var(--display);
+      font-size: 18px;
+      letter-spacing: 2px;
+      padding: 10px 28px;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+      white-space: nowrap;
+      height: 42px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-primary:hover { background: #ffd060; }
+    .btn-primary:active { transform: scale(0.98); }
+    .btn-primary:disabled { background: var(--border2); color: var(--muted); cursor: not-allowed; }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 1px;
+      padding: 6px 14px;
+      border: 1px solid var(--border2);
+      border-radius: 3px;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s;
+    }
+
+    .btn-outline:hover {
+      border-color: var(--gold-dim);
+      color: var(--gold);
+    }
+
+    .btn-copy-single {
+      background: transparent;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 10px;
+      padding: 3px 8px;
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+
+    .btn-copy-single:hover {
+      color: var(--gold);
+      border-color: var(--gold-dim);
+    }
+
+    .btn-copy-single.copied {
+      color: var(--green);
+      border-color: var(--green);
+    }
+
+    /* ── Status ── */
+    .status-bar {
+      display: none;
+      align-items: center;
+      gap: 12px;
+      margin-top: 20px;
+      padding: 12px 16px;
+      background: rgba(240, 192, 64, 0.06);
+      border: 1px solid rgba(240, 192, 64, 0.2);
+      border-radius: 3px;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--gold);
+    }
+
+    .status-bar.error {
+      background: rgba(255, 87, 87, 0.06);
+      border-color: rgba(255, 87, 87, 0.25);
+      color: var(--red);
+    }
+
+    .status-bar.visible { display: flex; }
+
+    .spinner {
+      width: 14px; height: 14px;
+      border: 2px solid rgba(240, 192, 64, 0.3);
+      border-top-color: var(--gold);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      flex-shrink: 0;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Results header ── */
+    .results-header {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .results-header.visible { display: flex; }
+
+    .results-title {
+      font-family: var(--display);
+      font-size: 28px;
+      letter-spacing: 2px;
+      color: var(--text);
+    }
+
+    .results-meta {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .results-meta strong {
+      color: var(--gold);
+      font-weight: 500;
+    }
+
+    .results-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    /* ── Table ── */
+    .table-wrap {
+      display: none;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .table-wrap.visible { display: block; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead th {
+      background: var(--surface);
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    thead th:first-child { width: 48px; text-align: center; }
+    thead th.th-thumb { width: 88px; }
+    thead th.th-views { width: 120px; text-align: right; }
+    thead th.th-action { width: 80px; text-align: center; }
+
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background 0.1s;
+    }
+
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: rgba(255,255,255,0.02); }
+
+    td {
+      padding: 14px 16px;
+      vertical-align: middle;
+    }
+
+    .td-rank {
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--muted);
+      text-align: center;
+      font-weight: 600;
+    }
+
+    .rank-top { color: var(--gold) !important; }
+
+    .td-thumb img {
+      width: 80px;
+      height: 45px;
+      object-fit: cover;
+      border-radius: 2px;
+      display: block;
+      background: var(--border);
+    }
+
+    .td-title {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+      line-height: 1.4;
+      max-width: 340px;
+    }
+
+    .td-title small {
+      display: block;
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--muted);
+      margin-top: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 340px;
+    }
+
+    .td-views {
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--text);
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .td-views small {
+      display: block;
+      font-size: 10px;
+      color: var(--muted);
+    }
+
+    .td-action { text-align: center; }
+
+    /* ── Bulk export panel ── */
+    .export-panel {
+      display: none;
+      margin-top: 24px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .export-panel.visible { display: block; }
+
+    .export-panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .export-panel-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .export-panel textarea {
+      width: 100%;
+      background: var(--bg);
+      border: none;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 11px;
+      padding: 16px 20px;
+      resize: vertical;
+      min-height: 120px;
+      outline: none;
+      line-height: 1.8;
+    }
+
+    /* ── Fade-in rows ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    tbody tr {
+      animation: fadeUp 0.25s ease both;
+    }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">YT·INTEL <span>TOP 50 EXTRACTOR</span></div>
+  <div class="badge">YouTube Data API v3</div>
+</header>
+
+<main>
+  <div class="hero">
+    <div class="hero-label">NotebookLM Ready</div>
+    <h1>EXTRACT<br><em>TOP 50</em><br>VIDEOS</h1>
+    <p class="hero-desc">
+      채널 ID와 API 키를 입력하면 조회수 기준 상위 50개 영상 URL을 추출합니다.
+      NotebookLM에 바로 붙여넣을 수 있는 형식으로 제공됩니다.
+    </p>
+  </div>
+
+  <div class="form-card">
+    <div class="form-grid">
+      <div class="field">
+        <label>Channel ID</label>
+        <input type="text" id="channelId" placeholder="UCxxxxxxxxxxxxxxxxxxxxxxxx" autocomplete="off" spellcheck="false">
+      </div>
+      <div class="field">
+        <label>YouTube Data API Key</label>
+        <input type="password" id="apiKey" placeholder="AIzaSy..." autocomplete="off" spellcheck="false">
+      </div>
+      <button class="btn-primary" id="extractBtn" onclick="extractTopVideos()">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+          <path d="M8 1v10M4 7l4 4 4-4M2 13h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        EXTRACT
+      </button>
+    </div>
+
+    <div class="status-bar" id="statusBar">
+      <div class="spinner" id="spinner"></div>
+      <span id="statusText"></span>
+    </div>
+  </div>
+
+  <!-- Results header -->
+  <div class="results-header" id="resultsHeader">
+    <div>
+      <div class="results-title">RESULTS</div>
+      <div class="results-meta" id="resultsMeta"></div>
+    </div>
+    <div class="results-actions">
+      <button class="btn-outline" onclick="copyAllUrls()">URL 전체 복사</button>
+      <button class="btn-outline" onclick="toggleExport()">내보내기 패널</button>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="table-wrap" id="tableWrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th class="th-thumb">썸네일</th>
+          <th>제목</th>
+          <th class="th-views">조회수</th>
+          <th class="th-action">복사</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+
+  <!-- Export panel -->
+  <div class="export-panel" id="exportPanel">
+    <div class="export-panel-header">
+      <span class="export-panel-label">URL 목록 — NotebookLM 붙여넣기용</span>
+      <button class="btn-outline" onclick="copyAllUrls()">전체 복사</button>
+    </div>
+    <textarea id="urlTextarea" readonly></textarea>
+  </div>
+</main>
+
+<script>
+  const YT_API = 'https://www.googleapis.com/youtube/v3';
+
+  let collectedUrls = [];
+
+  function setStatus(msg, type = 'loading', showSpinner = true) {
+    const bar = document.getElementById('statusBar');
+    const text = document.getElementById('statusText');
+    const spinner = document.getElementById('spinner');
+    bar.className = 'status-bar visible' + (type === 'error' ? ' error' : '');
+    text.textContent = msg;
+    spinner.style.display = showSpinner ? 'block' : 'none';
+  }
+
+  function hideStatus() {
+    document.getElementById('statusBar').className = 'status-bar';
+  }
+
+  async function fetchJSON(url) {
+    const res = await fetch(url);
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message);
+    return data;
+  }
+
+  function formatViews(n) {
+    n = parseInt(n);
+    if (n >= 1_000_000_000) return (n / 1_000_000_000).toFixed(1) + 'B';
+    if (n >= 1_000_000)     return (n / 1_000_000).toFixed(1) + 'M';
+    if (n >= 1_000)         return (n / 1_000).toFixed(1) + 'K';
+    return n.toLocaleString();
+  }
+
+  function formatViewsFull(n) {
+    return parseInt(n).toLocaleString() + '회';
+  }
+
+  // Parse any channel input format → { type: 'id'|'handle'|'username', value: string }
+  function parseChannelInput(raw) {
+    // Strip URL parts: https://www.youtube.com/@handle  or  youtube.com/channel/UCxxx  or  youtube.com/c/name  or  youtube.com/user/name
+    let s = raw.replace(/^https?:\/\//i, '').replace(/^www\./i, '').replace(/^youtube\.com\//i, '').split('?')[0].split('/')[0];
+
+    // Try full URL path extraction
+    const handleMatch = raw.match(/youtube\.com\/@([^/?&\s]+)/i);
+    if (handleMatch) return { type: 'handle', value: handleMatch[1] };
+
+    const channelMatch = raw.match(/youtube\.com\/channel\/(UC[^/?&\s]+)/i);
+    if (channelMatch) return { type: 'id', value: channelMatch[1] };
+
+    const userMatch = raw.match(/youtube\.com\/(?:c|user)\/([^/?&\s]+)/i);
+    if (userMatch) return { type: 'username', value: userMatch[1] };
+
+    // Bare input
+    if (raw.startsWith('@')) return { type: 'handle', value: raw.slice(1) };
+    if (raw.startsWith('UC') && raw.length > 20) return { type: 'id', value: raw };
+
+    return { type: 'handle', value: raw };
+  }
+
+  async function resolveChannelId(raw, apiKey) {
+    const parsed = parseChannelInput(raw);
+    if (parsed.type === 'id') return parsed.value;
+
+    const param = parsed.type === 'handle'
+      ? `forHandle=${encodeURIComponent(parsed.value)}`
+      : `forUsername=${encodeURIComponent(parsed.value)}`;
+
+    const data = await fetchJSON(`${YT_API}/channels?part=id&${param}&key=${encodeURIComponent(apiKey)}`);
+    if (!data.items || data.items.length === 0) {
+      throw new Error(`채널을 찾을 수 없습니다: "${raw}"`);
+    }
+    return data.items[0].id;
+  }
+
+  async function extractTopVideos() {
+    const rawInput = document.getElementById('channelId').value.trim();
+    const apiKey   = document.getElementById('apiKey').value.trim();
+
+    if (!rawInput || !apiKey) {
+      setStatus('Channel ID와 API Key를 모두 입력해주세요.', 'error', false);
+      return;
+    }
+
+    const btn = document.getElementById('extractBtn');
+    btn.disabled = true;
+    collectedUrls = [];
+
+    // Hide previous results
+    document.getElementById('resultsHeader').className = 'results-header';
+    document.getElementById('tableWrap').className = 'table-wrap';
+    document.getElementById('exportPanel').className = 'export-panel';
+    document.getElementById('tableBody').innerHTML = '';
+
+    try {
+      // Step 0: Resolve channel ID from any input format
+      setStatus('채널 ID 확인 중...');
+      const channelId = await resolveChannelId(rawInput, apiKey);
+
+      // Step 1: Search top 50 videos by view count
+      setStatus('채널 검색 중...');
+
+      let videoIds = [];
+      let pageToken = '';
+      let searchResults = [];
+
+      // Fetch up to 50 results (single page)
+      const searchUrl = `${YT_API}/search?part=snippet&channelId=${encodeURIComponent(channelId)}&order=viewCount&type=video&maxResults=50&key=${encodeURIComponent(apiKey)}${pageToken ? '&pageToken=' + pageToken : ''}`;
+      const searchData = await fetchJSON(searchUrl);
+      searchResults = searchData.items || [];
+      videoIds = searchResults.map(item => item.id.videoId);
+
+      if (videoIds.length === 0) {
+        setStatus('해당 채널에서 영상을 찾을 수 없습니다.', 'error', false);
+        btn.disabled = false;
+        return;
+      }
+
+      // Step 2: Fetch statistics for all videos
+      setStatus(`${videoIds.length}개 영상 통계 불러오는 중...`);
+
+      const statsUrl = `${YT_API}/videos?part=statistics,snippet&id=${videoIds.join(',')}&key=${encodeURIComponent(apiKey)}`;
+      const statsData = await fetchJSON(statsUrl);
+
+      // Merge and sort by viewCount
+      const videos = (statsData.items || []).map(item => ({
+        id:         item.id,
+        title:      item.snippet.title,
+        channel:    item.snippet.channelTitle,
+        thumb:      item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url || '',
+        views:      parseInt(item.statistics?.viewCount || 0),
+        published:  item.snippet.publishedAt?.slice(0, 10) || '',
+        url:        `https://www.youtube.com/watch?v=${item.id}`
+      }));
+
+      videos.sort((a, b) => b.views - a.views);
+
+      // Render
+      renderResults(videos);
+      hideStatus();
+
+    } catch (err) {
+      setStatus('오류: ' + err.message, 'error', false);
+    }
+
+    btn.disabled = false;
+  }
+
+  function renderResults(videos) {
+    const tbody = document.getElementById('tableBody');
+    const meta  = document.getElementById('resultsMeta');
+
+    collectedUrls = videos.map(v => v.url);
+
+    meta.innerHTML = `<strong>${videos.length}개</strong> 영상 추출됨 &nbsp;·&nbsp; 최고 조회수 <strong>${formatViews(videos[0]?.views || 0)}</strong>`;
+
+    tbody.innerHTML = '';
+    videos.forEach((v, i) => {
+      const rank = i + 1;
+      const topClass = rank <= 3 ? 'rank-top' : '';
+      const delay = Math.min(i * 20, 500);
+
+      const tr = document.createElement('tr');
+      tr.style.animationDelay = delay + 'ms';
+      tr.innerHTML = `
+        <td class="td-rank ${topClass}">${rank <= 3 ? ['🥇','🥈','🥉'][i] : rank}</td>
+        <td class="td-thumb">
+          <img src="${v.thumb}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
+        </td>
+        <td class="td-title">
+          <a href="${v.url}" target="_blank" rel="noopener" style="color:inherit;text-decoration:none;display:block;">
+            ${escapeHtml(v.title)}
+          </a>
+          <small>${escapeHtml(v.url)}</small>
+        </td>
+        <td class="td-views">
+          ${formatViews(v.views)}
+          <small>${formatViewsFull(v.views)}</small>
+        </td>
+        <td class="td-action">
+          <button class="btn-copy-single" onclick="copySingle(this, '${escapeAttr(v.url)}')">복사</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    // Update export textarea
+    document.getElementById('urlTextarea').value = collectedUrls.join('\n');
+
+    // Show sections
+    document.getElementById('resultsHeader').className = 'results-header visible';
+    document.getElementById('tableWrap').className = 'table-wrap visible';
+
+    // Scroll to results
+    document.getElementById('resultsHeader').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function copySingle(btn, url) {
+    navigator.clipboard.writeText(url).then(() => {
+      btn.textContent = '✓';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.textContent = '복사';
+        btn.classList.remove('copied');
+      }, 1500);
+    });
+  }
+
+  function copyAllUrls() {
+    if (!collectedUrls.length) return;
+    navigator.clipboard.writeText(collectedUrls.join('\n')).then(() => {
+      const btns = document.querySelectorAll('.btn-outline');
+      btns.forEach(b => {
+        if (b.textContent.includes('URL 전체 복사') || b.textContent.includes('전체 복사')) {
+          const orig = b.textContent;
+          b.textContent = '✓ 복사됨';
+          setTimeout(() => b.textContent = orig, 2000);
+        }
+      });
+    });
+  }
+
+  function toggleExport() {
+    const panel = document.getElementById('exportPanel');
+    if (panel.classList.contains('visible')) {
+      panel.className = 'export-panel';
+    } else {
+      panel.className = 'export-panel visible';
+      panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }
+
+  function escapeHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function escapeAttr(str) {
+    return str.replace(/'/g,"\\'");
+  }
+
+  // Enter key support
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && (e.target.id === 'channelId' || e.target.id === 'apiKey')) {
+      extractTopVideos();
+    }
+  });
+</script>
+</body>
+</html>
