@@ -865,8 +865,12 @@
   document.getElementById('apiKey').addEventListener('change', saveApiKey);
 
   // ── PIN 잠금 ──────────────────────────────────────────────────
-  const STORE_PIN  = 'yt_intel_pin';
-  const STORE_SESS = 'yt_intel_sess';
+  const STORE_PIN      = 'yt_intel_pin';
+  const STORE_SESS     = 'yt_intel_sess';
+  const STORE_ATTEMPTS = 'yt_intel_attempts';
+  const STORE_LOCKOUT  = 'yt_intel_lockout';
+  const MAX_ATTEMPTS   = 5;
+  const LOCKOUT_MS     = 10 * 60 * 1000; // 10분
 
   async function sha256(text) {
     const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
@@ -890,7 +894,7 @@
   }
 
   function unlockApp() {
-    // 세션 토큰 저장 (탭 닫으면 만료)
+    localStorage.setItem(STORE_ATTEMPTS, '0');
     sessionStorage.setItem(STORE_SESS, '1');
     const overlay = document.getElementById('pinOverlay');
     overlay.style.opacity = '0';
@@ -899,7 +903,45 @@
     loadApiKey();
   }
 
+  // 잠금 남은 시간 카운트다운 표시
+  let lockoutTimer = null;
+  function showLockoutCountdown() {
+    const input = document.getElementById('pinInput');
+    const btn   = document.getElementById('pinBtn');
+    input.disabled = true;
+    btn.disabled   = true;
+    input.style.opacity = '0.4';
+    btn.style.opacity   = '0.4';
+
+    function tick() {
+      const lockoutUntil = parseInt(localStorage.getItem(STORE_LOCKOUT) || '0');
+      const remaining = lockoutUntil - Date.now();
+      if (remaining <= 0) {
+        localStorage.setItem(STORE_ATTEMPTS, '0');
+        localStorage.removeItem(STORE_LOCKOUT);
+        input.disabled = false;
+        btn.disabled   = false;
+        input.style.opacity = '1';
+        btn.style.opacity   = '1';
+        document.getElementById('pinError').textContent = '';
+        document.getElementById('pinError').style.opacity = '0';
+        input.focus();
+        clearInterval(lockoutTimer);
+        return;
+      }
+      const m = Math.floor(remaining / 60000);
+      const s = Math.floor((remaining % 60000) / 1000);
+      pinError(`5회 연속 실패 — ${m}분 ${String(s).padStart(2,'0')}초 후 재시도 가능`);
+    }
+    tick();
+    lockoutTimer = setInterval(tick, 1000);
+  }
+
   async function submitPin() {
+    // 잠금 상태 확인
+    const lockoutUntil = parseInt(localStorage.getItem(STORE_LOCKOUT) || '0');
+    if (Date.now() < lockoutUntil) return;
+
     const input = document.getElementById('pinInput').value.trim();
     if (!input) return;
 
@@ -907,10 +949,11 @@
 
     if (!storedHash) {
       // 첫 방문: PIN 설정
-      if (input.length < 4) { pinError('PIN은 4자리 이상이어야 합니다'); return; }
+      if (input.length < 6) { pinError('PIN은 6자리 이상이어야 합니다'); return; }
       const hash = await sha256(input);
       localStorage.setItem(STORE_PIN, hash);
-      document.getElementById('pinTitle').textContent = 'PIN 설정 완료';
+      localStorage.setItem(STORE_ATTEMPTS, '0');
+      document.getElementById('pinTitle').textContent    = 'PIN 설정 완료';
       document.getElementById('pinSubtitle').textContent = '이 기기에서 PIN이 저장되었습니다';
       setTimeout(unlockApp, 800);
     } else {
@@ -919,27 +962,40 @@
       if (hash === storedHash) {
         unlockApp();
       } else {
-        pinError('PIN이 올바르지 않습니다');
+        const attempts = parseInt(localStorage.getItem(STORE_ATTEMPTS) || '0') + 1;
+        localStorage.setItem(STORE_ATTEMPTS, String(attempts));
+        const left = MAX_ATTEMPTS - attempts;
+
+        if (attempts >= MAX_ATTEMPTS) {
+          localStorage.setItem(STORE_LOCKOUT, String(Date.now() + LOCKOUT_MS));
+          showLockoutCountdown();
+        } else {
+          pinError(`PIN이 올바르지 않습니다 (남은 시도 ${left}회)`);
+        }
       }
     }
   }
 
   async function initPin() {
-    // 같은 탭 세션이면 바로 통과
     if (sessionStorage.getItem(STORE_SESS)) { unlockApp(); return; }
 
     const overlay = document.getElementById('pinOverlay');
     overlay.style.display = 'flex';
     setTimeout(() => overlay.style.opacity = '1', 10);
 
+    // 잠금 상태 확인
+    const lockoutUntil = parseInt(localStorage.getItem(STORE_LOCKOUT) || '0');
+    if (Date.now() < lockoutUntil) {
+      showLockoutCountdown();
+    }
+
     const hasPinSet = !!localStorage.getItem(STORE_PIN);
     document.getElementById('pinTitle').textContent    = hasPinSet ? 'PIN 입력' : 'PIN 설정';
     document.getElementById('pinSubtitle').textContent = hasPinSet
       ? '접근하려면 PIN을 입력하세요'
-      : '처음 방문입니다. 사용할 PIN을 설정하세요 (4자리 이상)';
+      : '처음 방문입니다. 사용할 PIN을 설정하세요 (6자리 이상)';
 
     document.getElementById('pinInput').focus();
-
     document.getElementById('pinInput').addEventListener('keydown', e => {
       if (e.key === 'Enter') submitPin();
     });
