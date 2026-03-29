@@ -247,6 +247,85 @@
       color: var(--gold);
     }
 
+    /* ── Mode toggle ── */
+    .mode-toggle {
+      display: flex;
+      gap: 0;
+      border: 1px solid var(--border2);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: 22px;
+      width: fit-content;
+    }
+
+    .mode-btn {
+      background: transparent;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      padding: 7px 20px;
+      border: none;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+      text-transform: uppercase;
+    }
+
+    .mode-btn.active {
+      background: var(--gold);
+      color: #0c0c0e;
+    }
+
+    .mode-btn:not(.active):hover {
+      color: var(--text);
+      background: rgba(255,255,255,0.04);
+    }
+
+    /* ── Date filter ── */
+    .date-filter {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-top: 18px;
+      padding-top: 18px;
+      border-top: 1px solid var(--border);
+    }
+
+    .date-filter-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-right: 4px;
+    }
+
+    .date-pill {
+      background: transparent;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 1px;
+      padding: 5px 14px;
+      border: 1px solid var(--border2);
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-transform: uppercase;
+    }
+
+    .date-pill:hover {
+      color: var(--text);
+      border-color: var(--gold-dim);
+    }
+
+    .date-pill.active {
+      background: rgba(240, 192, 64, 0.12);
+      color: var(--gold);
+      border-color: var(--gold-dim);
+    }
+
     .btn-copy-single {
       background: transparent;
       color: var(--muted);
@@ -562,18 +641,40 @@
   </div>
 
   <div class="form-card">
+    <!-- Mode toggle -->
+    <div class="mode-toggle">
+      <button class="mode-btn active" id="modeChannel" onclick="setMode('channel')">채널 검색</button>
+      <button class="mode-btn" id="modeKeyword" onclick="setMode('keyword')">키워드 검색</button>
+    </div>
+
     <div class="form-grid">
-      <div class="field">
-        <label>Channel ID</label>
-        <input type="text" id="channelId" placeholder="UCxxxxxxxxxxxxxxxxxxxxxxxx" autocomplete="off" spellcheck="false">
+      <!-- Channel mode -->
+      <div class="field" id="channelField">
+        <label>Channel ID / URL / Handle</label>
+        <input type="text" id="channelId" placeholder="UCxxxxxxxxxxxxxxxx  또는  @handle  또는  youtube.com/..." autocomplete="off" spellcheck="false">
+      </div>
+      <!-- Keyword mode -->
+      <div class="field" id="keywordField" style="display:none;">
+        <label>검색 키워드</label>
+        <input type="text" id="keywordInput" placeholder="예: claude code, AI tutorial, 파이썬 강의..." autocomplete="off" spellcheck="false">
       </div>
       <input type="hidden" id="apiKey">
       <button class="btn-primary" id="extractBtn" onclick="extractTopVideos()">
         <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
           <path d="M8 1v10M4 7l4 4 4-4M2 13h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
         </svg>
-        EXTRACT
+        SEARCH
       </button>
+    </div>
+
+    <!-- Date filter -->
+    <div class="date-filter">
+      <span class="date-filter-label">업로드 날짜</span>
+      <button class="date-pill active" data-days="0"   onclick="setDateFilter(this)">전체</button>
+      <button class="date-pill"        data-days="3"   onclick="setDateFilter(this)">최근 3일</button>
+      <button class="date-pill"        data-days="7"   onclick="setDateFilter(this)">최근 1주일</button>
+      <button class="date-pill"        data-days="30"  onclick="setDateFilter(this)">최근 1달</button>
+      <button class="date-pill"        data-days="365" onclick="setDateFilter(this)">최근 1년</button>
     </div>
 
     <div class="status-bar" id="statusBar">
@@ -601,7 +702,7 @@
         <tr>
           <th>#</th>
           <th class="th-thumb">썸네일</th>
-          <th>제목</th>
+          <th>제목 / 채널</th>
           <th class="th-views">조회수</th>
           <th class="th-action">복사</th>
         </tr>
@@ -624,7 +725,35 @@
   const YT_API       = 'https://www.googleapis.com/youtube/v3';
   const STORE_APIKEY = 'yt_intel_apikey';
 
-  let collectedUrls = [];
+  let collectedUrls   = [];
+  let currentMode     = 'channel';   // 'channel' | 'keyword'
+  let currentDateDays = 0;           // 0 = 전체
+
+  /* ── Mode toggle ── */
+  function setMode(mode) {
+    currentMode = mode;
+    document.getElementById('modeChannel').classList.toggle('active', mode === 'channel');
+    document.getElementById('modeKeyword').classList.toggle('active', mode === 'keyword');
+    document.getElementById('channelField').style.display  = mode === 'channel'  ? '' : 'none';
+    document.getElementById('keywordField').style.display  = mode === 'keyword'  ? '' : 'none';
+    document.getElementById('extractBtn').textContent = '';
+    const svg = `<svg width="14" height="14" viewBox="0 0 16 16" fill="none" style="flex-shrink:0"><path d="M8 1v10M4 7l4 4 4-4M2 13h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>`;
+    document.getElementById('extractBtn').innerHTML = svg + (mode === 'keyword' ? ' SEARCH' : ' EXTRACT');
+  }
+
+  /* ── Date filter ── */
+  function setDateFilter(btn) {
+    document.querySelectorAll('.date-pill').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    currentDateDays = parseInt(btn.dataset.days);
+  }
+
+  function getPublishedAfter() {
+    if (!currentDateDays) return '';
+    const d = new Date();
+    d.setDate(d.getDate() - currentDateDays);
+    return d.toISOString();
+  }
 
   function setStatus(msg, type = 'loading', showSpinner = true) {
     const bar = document.getElementById('statusBar');
@@ -696,15 +825,10 @@
   }
 
   async function extractTopVideos() {
-    const rawInput = document.getElementById('channelId').value.trim();
-    const apiKey   = localStorage.getItem(STORE_APIKEY) || '';
+    const apiKey = localStorage.getItem(STORE_APIKEY) || '';
 
     if (!apiKey) {
       showApiKeySetup();
-      return;
-    }
-    if (!rawInput) {
-      setStatus('Channel ID를 입력해주세요.', 'error', false);
       return;
     }
 
@@ -719,49 +843,72 @@
     document.getElementById('tableBody').innerHTML = '';
 
     try {
-      // Step 0: Resolve channel ID from any input format
-      setStatus('채널 ID 확인 중...');
-      const channelId = await resolveChannelId(rawInput, apiKey);
-
-      // Step 1: Search top 50 videos by view count
-      setStatus('채널 검색 중...');
+      const publishedAfter = getPublishedAfter();
+      const dateParam = publishedAfter ? `&publishedAfter=${encodeURIComponent(publishedAfter)}` : '';
 
       let videoIds = [];
-      let pageToken = '';
-      let searchResults = [];
 
-      // Fetch up to 50 results (single page)
-      const searchUrl = `${YT_API}/search?part=snippet&channelId=${encodeURIComponent(channelId)}&order=viewCount&type=video&maxResults=50&key=${encodeURIComponent(apiKey)}${pageToken ? '&pageToken=' + pageToken : ''}`;
-      const searchData = await fetchJSON(searchUrl);
-      searchResults = searchData.items || [];
-      videoIds = searchResults.map(item => item.id.videoId);
+      if (currentMode === 'keyword') {
+        /* ─── 키워드 검색 모드 ─── */
+        const keyword = document.getElementById('keywordInput').value.trim();
+        if (!keyword) {
+          setStatus('검색 키워드를 입력해주세요.', 'error', false);
+          btn.disabled = false;
+          return;
+        }
 
-      if (videoIds.length === 0) {
-        setStatus('해당 채널에서 영상을 찾을 수 없습니다.', 'error', false);
-        btn.disabled = false;
-        return;
+        setStatus(`"${keyword}" 키워드로 검색 중...`);
+        const searchUrl = `${YT_API}/search?part=snippet&q=${encodeURIComponent(keyword)}&order=viewCount&type=video&maxResults=50${dateParam}&key=${encodeURIComponent(apiKey)}`;
+        const searchData = await fetchJSON(searchUrl);
+        videoIds = (searchData.items || []).map(item => item.id.videoId).filter(Boolean);
+
+        if (videoIds.length === 0) {
+          setStatus('검색 결과가 없습니다.', 'error', false);
+          btn.disabled = false;
+          return;
+        }
+
+      } else {
+        /* ─── 채널 검색 모드 ─── */
+        const rawInput = document.getElementById('channelId').value.trim();
+        if (!rawInput) {
+          setStatus('Channel ID를 입력해주세요.', 'error', false);
+          btn.disabled = false;
+          return;
+        }
+
+        setStatus('채널 ID 확인 중...');
+        const channelId = await resolveChannelId(rawInput, apiKey);
+
+        setStatus('채널 영상 검색 중...');
+        const searchUrl = `${YT_API}/search?part=snippet&channelId=${encodeURIComponent(channelId)}&order=viewCount&type=video&maxResults=50${dateParam}&key=${encodeURIComponent(apiKey)}`;
+        const searchData = await fetchJSON(searchUrl);
+        videoIds = (searchData.items || []).map(item => item.id.videoId).filter(Boolean);
+
+        if (videoIds.length === 0) {
+          setStatus('해당 채널에서 영상을 찾을 수 없습니다.', 'error', false);
+          btn.disabled = false;
+          return;
+        }
       }
 
       // Step 2: Fetch statistics for all videos
       setStatus(`${videoIds.length}개 영상 통계 불러오는 중...`);
-
       const statsUrl = `${YT_API}/videos?part=statistics,snippet&id=${videoIds.join(',')}&key=${encodeURIComponent(apiKey)}`;
       const statsData = await fetchJSON(statsUrl);
 
-      // Merge and sort by viewCount
+      // Sort by viewCount
       const videos = (statsData.items || []).map(item => ({
-        id:         item.id,
-        title:      item.snippet.title,
-        channel:    item.snippet.channelTitle,
-        thumb:      item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url || '',
-        views:      parseInt(item.statistics?.viewCount || 0),
-        published:  item.snippet.publishedAt?.slice(0, 10) || '',
-        url:        `https://www.youtube.com/watch?v=${item.id}`
+        id:        item.id,
+        title:     item.snippet.title,
+        channel:   item.snippet.channelTitle,
+        thumb:     item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url || '',
+        views:     parseInt(item.statistics?.viewCount || 0),
+        published: item.snippet.publishedAt?.slice(0, 10) || '',
+        url:       `https://www.youtube.com/watch?v=${item.id}`
       }));
-
       videos.sort((a, b) => b.views - a.views);
 
-      // Render
       renderResults(videos);
       hideStatus();
 
@@ -778,7 +925,12 @@
 
     collectedUrls = videos.map(v => v.url);
 
-    meta.innerHTML = `<strong>${videos.length}개</strong> 영상 추출됨 &nbsp;·&nbsp; 최고 조회수 <strong>${formatViews(videos[0]?.views || 0)}</strong>`;
+    const activePill = document.querySelector('.date-pill.active');
+    const dateLabel  = activePill?.textContent !== '전체' ? ` &nbsp;·&nbsp; ${activePill.textContent}` : '';
+    const modeLabel  = currentMode === 'keyword'
+      ? `"${escapeHtml(document.getElementById('keywordInput').value.trim())}" 키워드 검색`
+      : '채널 검색';
+    meta.innerHTML = `${modeLabel} &nbsp;·&nbsp; <strong>${videos.length}개</strong> 영상${dateLabel} &nbsp;·&nbsp; 최고 조회수 <strong>${formatViews(videos[0]?.views || 0)}</strong>`;
 
     tbody.innerHTML = '';
     videos.forEach((v, i) => {
@@ -797,7 +949,8 @@
           <a href="${v.url}" target="_blank" rel="noopener" style="color:inherit;text-decoration:none;display:block;">
             ${escapeHtml(v.title)}
           </a>
-          <small>${escapeHtml(v.url)}</small>
+          <small style="color:var(--gold-dim);">${escapeHtml(v.channel)}</small>
+          <small style="margin-top:2px;">${v.published} &nbsp;·&nbsp; ${escapeHtml(v.url)}</small>
         </td>
         <td class="td-views">
           ${formatViews(v.views)}
@@ -866,7 +1019,7 @@
 
   // Enter key support
   document.addEventListener('keydown', e => {
-    if (e.key === 'Enter' && e.target.id === 'channelId') {
+    if (e.key === 'Enter' && (e.target.id === 'channelId' || e.target.id === 'keywordInput')) {
       extractTopVideos();
     }
   });
