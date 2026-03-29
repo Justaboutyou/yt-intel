@@ -161,7 +161,7 @@
 
     .form-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr auto;
+      grid-template-columns: 1fr auto;
       gap: 16px;
       align-items: end;
     }
@@ -548,10 +548,7 @@
         <label>Channel ID</label>
         <input type="text" id="channelId" placeholder="UCxxxxxxxxxxxxxxxxxxxxxxxx" autocomplete="off" spellcheck="false">
       </div>
-      <div class="field">
-        <label>YouTube Data API Key</label>
-        <input type="password" id="apiKey" placeholder="AIzaSy..." autocomplete="off" spellcheck="false">
-      </div>
+      <input type="hidden" id="apiKey">
       <button class="btn-primary" id="extractBtn" onclick="extractTopVideos()">
         <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
           <path d="M8 1v10M4 7l4 4 4-4M2 13h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
@@ -605,7 +602,8 @@
 </main>
 
 <script>
-  const YT_API = 'https://www.googleapis.com/youtube/v3';
+  const YT_API    = 'https://www.googleapis.com/youtube/v3';
+  const FIXED_KEY = 'AIzaSyC6sTlEK2WOiNqozOBebshrwXdzxZ6Sipc';
 
   let collectedUrls = [];
 
@@ -680,10 +678,10 @@
 
   async function extractTopVideos() {
     const rawInput = document.getElementById('channelId').value.trim();
-    const apiKey   = document.getElementById('apiKey').value.trim();
+    const apiKey   = FIXED_KEY;
 
-    if (!rawInput || !apiKey) {
-      setStatus('Channel ID와 API Key를 모두 입력해주세요.', 'error', false);
+    if (!rawInput) {
+      setStatus('Channel ID를 입력해주세요.', 'error', false);
       return;
     }
 
@@ -845,24 +843,12 @@
 
   // Enter key support
   document.addEventListener('keydown', e => {
-    if (e.key === 'Enter' && (e.target.id === 'channelId' || e.target.id === 'apiKey')) {
+    if (e.key === 'Enter' && e.target.id === 'channelId') {
       extractTopVideos();
     }
   });
 
-  // ── API Key 자동 저장 / 불러오기 ──────────────────────────────
-  function saveApiKey() {
-    const key = document.getElementById('apiKey').value.trim();
-    if (key) localStorage.setItem('yt_intel_apikey', key);
-  }
-
-  function loadApiKey() {
-    const saved = localStorage.getItem('yt_intel_apikey');
-    if (saved) document.getElementById('apiKey').value = saved;
-  }
-
-  // API Key 입력 시 자동 저장
-  document.getElementById('apiKey').addEventListener('change', saveApiKey);
+  function loadApiKey() { /* API Key 고정됨 — 별도 저장 불필요 */ }
 
   // ── PIN 잠금 ──────────────────────────────────────────────────
   const STORE_PIN      = 'yt_intel_pin';
