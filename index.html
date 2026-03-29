@@ -498,9 +498,34 @@
     ::-webkit-scrollbar-track { background: var(--bg); }
     ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
     ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
+    @keyframes pin-shake {
+      0%,100% { transform: translateX(0); }
+      20%      { transform: translateX(-8px); }
+      40%      { transform: translateX(8px); }
+      60%      { transform: translateX(-5px); }
+      80%      { transform: translateX(5px); }
+    }
+    .pin-shake { animation: pin-shake 0.4s ease; }
   </style>
 </head>
 <body>
+
+<!-- PIN 잠금 오버레이 -->
+<div id="pinOverlay" style="display:none;opacity:0;transition:opacity 0.3s;position:fixed;inset:0;background:var(--bg);z-index:10000;align-items:center;justify-content:center;flex-direction:column;">
+  <div id="pinBox" style="background:var(--surface);border:1px solid var(--border2);border-radius:8px;padding:40px 36px;width:min(360px,90vw);text-align:center;position:relative;overflow:hidden;">
+    <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--gold) 0%,transparent 60%);"></div>
+    <div style="font-family:var(--display);font-size:32px;letter-spacing:3px;color:var(--gold);margin-bottom:6px;">YT·INTEL</div>
+    <div id="pinTitle"   style="font-family:var(--mono);font-size:13px;letter-spacing:2px;color:var(--text);margin-bottom:6px;text-transform:uppercase;"></div>
+    <div id="pinSubtitle" style="font-family:var(--sans);font-size:12px;color:var(--muted);margin-bottom:28px;line-height:1.6;"></div>
+    <input id="pinInput" type="password" inputmode="numeric" placeholder="PIN 입력"
+      style="width:100%;background:var(--bg);border:1px solid var(--border2);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:18px;padding:12px 16px;outline:none;text-align:center;letter-spacing:6px;transition:border-color 0.15s,box-shadow 0.15s;margin-bottom:8px;"
+      onfocus="this.style.borderColor='var(--gold-dim)';this.style.boxShadow='0 0 0 3px rgba(240,192,64,0.08)'"
+      onblur="this.style.borderColor='var(--border2)';this.style.boxShadow='none'">
+    <div id="pinError" style="font-family:var(--mono);font-size:11px;color:var(--red);min-height:18px;margin-bottom:16px;opacity:0;transition:opacity 0.2s;"></div>
+    <button id="pinBtn" style="width:100%;background:var(--gold);color:#0c0c0e;font-family:var(--display);font-size:20px;letter-spacing:2px;padding:12px;border:none;border-radius:4px;cursor:pointer;transition:background 0.15s;" onmouseover="this.style.background='#ffd060'" onmouseout="this.style.background='var(--gold)'">확인</button>
+  </div>
+</div>
 
 <header>
   <div class="logo">YT·INTEL <span>TOP 50 EXTRACTOR</span></div>
@@ -824,6 +849,104 @@
       extractTopVideos();
     }
   });
+
+  // ── API Key 자동 저장 / 불러오기 ──────────────────────────────
+  function saveApiKey() {
+    const key = document.getElementById('apiKey').value.trim();
+    if (key) localStorage.setItem('yt_intel_apikey', key);
+  }
+
+  function loadApiKey() {
+    const saved = localStorage.getItem('yt_intel_apikey');
+    if (saved) document.getElementById('apiKey').value = saved;
+  }
+
+  // API Key 입력 시 자동 저장
+  document.getElementById('apiKey').addEventListener('change', saveApiKey);
+
+  // ── PIN 잠금 ──────────────────────────────────────────────────
+  const STORE_PIN  = 'yt_intel_pin';
+  const STORE_SESS = 'yt_intel_sess';
+
+  async function sha256(text) {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+  }
+
+  function pinShake() {
+    const box = document.getElementById('pinBox');
+    box.classList.remove('pin-shake');
+    void box.offsetWidth;
+    box.classList.add('pin-shake');
+  }
+
+  function pinError(msg) {
+    const err = document.getElementById('pinError');
+    err.textContent = msg;
+    err.style.opacity = '1';
+    document.getElementById('pinInput').value = '';
+    document.getElementById('pinInput').focus();
+    pinShake();
+  }
+
+  function unlockApp() {
+    // 세션 토큰 저장 (탭 닫으면 만료)
+    sessionStorage.setItem(STORE_SESS, '1');
+    const overlay = document.getElementById('pinOverlay');
+    overlay.style.opacity = '0';
+    overlay.style.pointerEvents = 'none';
+    setTimeout(() => overlay.style.display = 'none', 400);
+    loadApiKey();
+  }
+
+  async function submitPin() {
+    const input = document.getElementById('pinInput').value.trim();
+    if (!input) return;
+
+    const storedHash = localStorage.getItem(STORE_PIN);
+
+    if (!storedHash) {
+      // 첫 방문: PIN 설정
+      if (input.length < 4) { pinError('PIN은 4자리 이상이어야 합니다'); return; }
+      const hash = await sha256(input);
+      localStorage.setItem(STORE_PIN, hash);
+      document.getElementById('pinTitle').textContent = 'PIN 설정 완료';
+      document.getElementById('pinSubtitle').textContent = '이 기기에서 PIN이 저장되었습니다';
+      setTimeout(unlockApp, 800);
+    } else {
+      // 이후 방문: PIN 확인
+      const hash = await sha256(input);
+      if (hash === storedHash) {
+        unlockApp();
+      } else {
+        pinError('PIN이 올바르지 않습니다');
+      }
+    }
+  }
+
+  async function initPin() {
+    // 같은 탭 세션이면 바로 통과
+    if (sessionStorage.getItem(STORE_SESS)) { unlockApp(); return; }
+
+    const overlay = document.getElementById('pinOverlay');
+    overlay.style.display = 'flex';
+    setTimeout(() => overlay.style.opacity = '1', 10);
+
+    const hasPinSet = !!localStorage.getItem(STORE_PIN);
+    document.getElementById('pinTitle').textContent    = hasPinSet ? 'PIN 입력' : 'PIN 설정';
+    document.getElementById('pinSubtitle').textContent = hasPinSet
+      ? '접근하려면 PIN을 입력하세요'
+      : '처음 방문입니다. 사용할 PIN을 설정하세요 (4자리 이상)';
+
+    document.getElementById('pinInput').focus();
+
+    document.getElementById('pinInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') submitPin();
+    });
+    document.getElementById('pinBtn').addEventListener('click', submitPin);
+  }
+
+  window.addEventListener('DOMContentLoaded', initPin);
 </script>
 </body>
 </html>
