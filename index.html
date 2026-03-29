@@ -4,22 +4,22 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>YT·INTEL — Top 50 Extractor</title>
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg:       #0c0c0e;
-      --surface:  #131316;
-      --border:   #222228;
-      --border2:  #2e2e38;
-      --gold:     #f0c040;
-      --gold-dim: #a07e1a;
-      --green:    #3dffa0;
-      --red:      #ff5757;
-      --text:     #e8e8f0;
-      --muted:    #6b6b80;
+      --bg:       #f5f0e8;
+      --surface:  #faf7f2;
+      --border:   #e0d8cc;
+      --border2:  #d4ccc0;
+      --gold:     #5c7a52;
+      --gold-dim: #3d5436;
+      --green:    #7aab6e;
+      --red:      #b85450;
+      --text:     #2d3a2e;
+      --muted:    #8a7a68;
       --mono:     'IBM Plex Mono', monospace;
-      --sans:     'IBM Plex Sans', sans-serif;
-      --display:  'Bebas Neue', sans-serif;
+      --sans:     'Inter', sans-serif;
+      --display:  'DM Serif Display', serif;
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -41,10 +41,10 @@
       content: '';
       position: fixed;
       inset: 0;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
       pointer-events: none;
       z-index: 9999;
-      opacity: 0.4;
+      opacity: 0.18;
     }
 
     /* ── Top bar ── */
@@ -64,17 +64,20 @@
     .logo {
       font-family: var(--display);
       font-size: 22px;
-      letter-spacing: 2px;
+      font-style: italic;
+      letter-spacing: 1px;
       color: var(--gold);
     }
 
     .logo span {
       color: var(--muted);
-      font-size: 11px;
+      font-size: 10px;
       font-family: var(--mono);
-      letter-spacing: 1px;
+      font-style: normal;
+      letter-spacing: 2px;
       vertical-align: middle;
-      margin-left: 10px;
+      margin-left: 12px;
+      text-transform: uppercase;
     }
 
     .badge {
@@ -101,7 +104,7 @@
 
     .hero-label {
       font-family: var(--mono);
-      font-size: 11px;
+      font-size: 10px;
       letter-spacing: 3px;
       color: var(--gold);
       text-transform: uppercase;
@@ -122,14 +125,15 @@
     h1 {
       font-family: var(--display);
       font-size: clamp(42px, 6vw, 72px);
-      letter-spacing: 3px;
-      line-height: 1;
+      font-style: italic;
+      letter-spacing: 1px;
+      line-height: 1.05;
       color: var(--text);
       margin-bottom: 16px;
     }
 
     h1 em {
-      font-style: normal;
+      font-style: italic;
       color: var(--gold);
     }
 
@@ -156,7 +160,7 @@
       position: absolute;
       top: 0; left: 0; right: 0;
       height: 2px;
-      background: linear-gradient(90deg, var(--gold) 0%, transparent 60%);
+      background: linear-gradient(90deg, var(--gold) 0%, transparent 70%);
     }
 
     .form-grid {
@@ -203,16 +207,18 @@
 
     input:focus {
       border-color: var(--gold-dim);
-      box-shadow: 0 0 0 3px rgba(240, 192, 64, 0.08);
+      box-shadow: 0 0 0 3px rgba(92, 122, 82, 0.12);
     }
 
     /* ── Buttons ── */
     .btn-primary {
       background: var(--gold);
-      color: #0c0c0e;
-      font-family: var(--display);
-      font-size: 18px;
-      letter-spacing: 2px;
+      color: #faf7f2;
+      font-family: var(--sans);
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
       padding: 10px 28px;
       border: none;
       border-radius: 3px;
@@ -225,7 +231,7 @@
       gap: 8px;
     }
 
-    .btn-primary:hover { background: #ffd060; }
+    .btn-primary:hover { background: #4a6642; }
     .btn-primary:active { transform: scale(0.98); }
     .btn-primary:disabled { background: var(--border2); color: var(--muted); cursor: not-allowed; }
 
@@ -326,6 +332,31 @@
       border-color: var(--gold-dim);
     }
 
+    .count-pill {
+      background: transparent;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 1px;
+      padding: 5px 14px;
+      border: 1px solid var(--border2);
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-transform: uppercase;
+    }
+
+    .count-pill:hover {
+      color: var(--text);
+      border-color: var(--gold-dim);
+    }
+
+    .count-pill.active {
+      background: rgba(61, 255, 160, 0.1);
+      color: var(--green);
+      border-color: rgba(61, 255, 160, 0.4);
+    }
+
     .btn-copy-single {
       background: transparent;
       color: var(--muted);
@@ -356,8 +387,8 @@
       gap: 12px;
       margin-top: 20px;
       padding: 12px 16px;
-      background: rgba(240, 192, 64, 0.06);
-      border: 1px solid rgba(240, 192, 64, 0.2);
+      background: rgba(92, 122, 82, 0.07);
+      border: 1px solid rgba(92, 122, 82, 0.25);
       border-radius: 3px;
       font-family: var(--mono);
       font-size: 12px;
@@ -365,8 +396,8 @@
     }
 
     .status-bar.error {
-      background: rgba(255, 87, 87, 0.06);
-      border-color: rgba(255, 87, 87, 0.25);
+      background: rgba(184, 84, 80, 0.07);
+      border-color: rgba(184, 84, 80, 0.28);
       color: var(--red);
     }
 
@@ -374,7 +405,7 @@
 
     .spinner {
       width: 14px; height: 14px;
-      border: 2px solid rgba(240, 192, 64, 0.3);
+      border: 2px solid rgba(92, 122, 82, 0.25);
       border-top-color: var(--gold);
       border-radius: 50%;
       animation: spin 0.7s linear infinite;
@@ -398,7 +429,8 @@
     .results-title {
       font-family: var(--display);
       font-size: 28px;
-      letter-spacing: 2px;
+      font-style: italic;
+      letter-spacing: 0px;
       color: var(--text);
     }
 
@@ -410,7 +442,7 @@
 
     .results-meta strong {
       color: var(--gold);
-      font-weight: 500;
+      font-weight: 600;
     }
 
     .results-actions {
@@ -473,7 +505,7 @@
       font-weight: 600;
     }
 
-    .rank-top { color: var(--gold) !important; }
+    .rank-top { color: var(--gold) !important; font-style: italic; }
 
     .td-thumb img {
       width: 80px;
@@ -552,7 +584,7 @@
       width: 100%;
       background: var(--bg);
       border: none;
-      color: var(--muted);
+      color: var(--text);
       font-family: var(--mono);
       font-size: 11px;
       padding: 16px 20px;
@@ -575,7 +607,7 @@
     /* ── Scrollbar ── */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: var(--bg); }
-    ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb { background: #c8bfb2; border-radius: 3px; }
     ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
 
     @keyframes pin-shake {
@@ -591,34 +623,34 @@
 <body>
 
 <!-- API Key 설정 모달 -->
-<div id="apiKeyModal" style="display:none;opacity:0;transition:opacity 0.3s;position:fixed;inset:0;background:rgba(12,12,14,0.85);backdrop-filter:blur(4px);z-index:9000;align-items:center;justify-content:center;">
-  <div style="background:var(--surface);border:1px solid var(--border2);border-radius:8px;padding:36px;width:min(420px,90vw);position:relative;overflow:hidden;">
+<div id="apiKeyModal" style="display:none;opacity:0;transition:opacity 0.3s;position:fixed;inset:0;background:rgba(45,58,46,0.55);backdrop-filter:blur(6px);z-index:9000;align-items:center;justify-content:center;">
+  <div style="background:var(--surface);border:1px solid var(--border2);border-radius:8px;padding:36px;width:min(420px,90vw);position:relative;overflow:hidden;box-shadow:0 8px 40px rgba(45,58,46,0.18);">
     <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--gold) 0%,transparent 60%);"></div>
-    <div style="font-family:var(--mono);font-size:11px;letter-spacing:3px;color:var(--gold);text-transform:uppercase;margin-bottom:8px;">API Key 설정</div>
+    <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:8px;">API Key 설정</div>
     <div style="font-family:var(--sans);font-size:13px;color:var(--muted);margin-bottom:24px;line-height:1.6;">YouTube Data API Key를 입력하세요.<br>이 기기의 브라우저에만 저장됩니다.</div>
     <input id="apiKeyInput" type="password" placeholder="AIzaSy..."
       style="width:100%;background:var(--bg);border:1px solid var(--border2);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:13px;padding:11px 14px;outline:none;margin-bottom:6px;transition:border-color 0.15s,box-shadow 0.15s;"
-      onfocus="this.style.borderColor='var(--gold-dim)';this.style.boxShadow='0 0 0 3px rgba(240,192,64,0.08)'"
+      onfocus="this.style.borderColor='var(--gold-dim)';this.style.boxShadow='0 0 0 3px rgba(92,122,82,0.12)'"
       onblur="this.style.borderColor='var(--border2)';this.style.boxShadow='none'"
       onkeydown="if(event.key==='Enter')saveApiKeyFromModal()">
     <div id="apiKeyModalError" style="font-family:var(--mono);font-size:11px;color:var(--red);min-height:18px;margin-bottom:14px;"></div>
-    <button onclick="saveApiKeyFromModal()" style="width:100%;background:var(--gold);color:#0c0c0e;font-family:var(--display);font-size:20px;letter-spacing:2px;padding:11px;border:none;border-radius:4px;cursor:pointer;transition:background 0.15s;" onmouseover="this.style.background='#ffd060'" onmouseout="this.style.background='var(--gold)'">저장</button>
+    <button onclick="saveApiKeyFromModal()" style="width:100%;background:var(--gold);color:#faf7f2;font-family:var(--sans);font-size:14px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;padding:11px;border:none;border-radius:4px;cursor:pointer;transition:background 0.15s;" onmouseover="this.style.background='#4a6642'" onmouseout="this.style.background='var(--gold)'">저장</button>
   </div>
 </div>
 
 <!-- PIN 잠금 오버레이 -->
 <div id="pinOverlay" style="display:none;opacity:0;transition:opacity 0.3s;position:fixed;inset:0;background:var(--bg);z-index:10000;align-items:center;justify-content:center;flex-direction:column;">
-  <div id="pinBox" style="background:var(--surface);border:1px solid var(--border2);border-radius:8px;padding:40px 36px;width:min(360px,90vw);text-align:center;position:relative;overflow:hidden;">
+  <div id="pinBox" style="background:var(--surface);border:1px solid var(--border2);border-radius:8px;padding:40px 36px;width:min(360px,90vw);text-align:center;position:relative;overflow:hidden;box-shadow:0 8px 40px rgba(45,58,46,0.12);">
     <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--gold) 0%,transparent 60%);"></div>
-    <div style="font-family:var(--display);font-size:32px;letter-spacing:3px;color:var(--gold);margin-bottom:6px;">YT·INTEL</div>
-    <div id="pinTitle"   style="font-family:var(--mono);font-size:13px;letter-spacing:2px;color:var(--text);margin-bottom:6px;text-transform:uppercase;"></div>
+    <div style="font-family:var(--display);font-size:32px;font-style:italic;letter-spacing:2px;color:var(--gold);margin-bottom:6px;">YT·INTEL</div>
+    <div id="pinTitle"   style="font-family:var(--mono);font-size:11px;letter-spacing:2px;color:var(--text);margin-bottom:6px;text-transform:uppercase;"></div>
     <div id="pinSubtitle" style="font-family:var(--sans);font-size:12px;color:var(--muted);margin-bottom:28px;line-height:1.6;"></div>
     <input id="pinInput" type="password" inputmode="numeric" placeholder="PIN 입력"
       style="width:100%;background:var(--bg);border:1px solid var(--border2);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:18px;padding:12px 16px;outline:none;text-align:center;letter-spacing:6px;transition:border-color 0.15s,box-shadow 0.15s;margin-bottom:8px;"
-      onfocus="this.style.borderColor='var(--gold-dim)';this.style.boxShadow='0 0 0 3px rgba(240,192,64,0.08)'"
+      onfocus="this.style.borderColor='var(--gold-dim)';this.style.boxShadow='0 0 0 3px rgba(92,122,82,0.12)'"
       onblur="this.style.borderColor='var(--border2)';this.style.boxShadow='none'">
     <div id="pinError" style="font-family:var(--mono);font-size:11px;color:var(--red);min-height:18px;margin-bottom:16px;opacity:0;transition:opacity 0.2s;"></div>
-    <button id="pinBtn" style="width:100%;background:var(--gold);color:#0c0c0e;font-family:var(--display);font-size:20px;letter-spacing:2px;padding:12px;border:none;border-radius:4px;cursor:pointer;transition:background 0.15s;" onmouseover="this.style.background='#ffd060'" onmouseout="this.style.background='var(--gold)'">확인</button>
+    <button id="pinBtn" style="width:100%;background:var(--gold);color:#faf7f2;font-family:var(--sans);font-size:14px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;padding:12px;border:none;border-radius:4px;cursor:pointer;transition:background 0.15s;" onmouseover="this.style.background='#4a6642'" onmouseout="this.style.background='var(--gold)'">확인</button>
   </div>
 </div>
 
@@ -630,10 +662,11 @@
   </div>
 </header>
 
+
 <main>
   <div class="hero">
     <div class="hero-label">NotebookLM Ready</div>
-    <h1>EXTRACT<br><em>TOP 50</em><br>VIDEOS</h1>
+    <h1>Extract<br><em>Top 50</em><br>Videos</h1>
     <p class="hero-desc">
       채널 ID와 API 키를 입력하면 조회수 기준 상위 50개 영상 URL을 추출합니다.
       NotebookLM에 바로 붙여넣을 수 있는 형식으로 제공됩니다.
@@ -677,6 +710,15 @@
       <button class="date-pill"        data-days="365" onclick="setDateFilter(this)">최근 1년</button>
     </div>
 
+    <div class="date-filter">
+      <span class="date-filter-label">추출 개수</span>
+      <button class="count-pill"        data-count="10" onclick="setCountFilter(this)">TOP 10</button>
+      <button class="count-pill"        data-count="20" onclick="setCountFilter(this)">TOP 20</button>
+      <button class="count-pill"        data-count="30" onclick="setCountFilter(this)">TOP 30</button>
+      <button class="count-pill"        data-count="40" onclick="setCountFilter(this)">TOP 40</button>
+      <button class="count-pill active" data-count="50" onclick="setCountFilter(this)">TOP 50</button>
+    </div>
+
     <div class="status-bar" id="statusBar">
       <div class="spinner" id="spinner"></div>
       <span id="statusText"></span>
@@ -686,7 +728,7 @@
   <!-- Results header -->
   <div class="results-header" id="resultsHeader">
     <div>
-      <div class="results-title">RESULTS</div>
+      <div class="results-title">Results</div>
       <div class="results-meta" id="resultsMeta"></div>
     </div>
     <div class="results-actions">
@@ -728,6 +770,7 @@
   let collectedUrls   = [];
   let currentMode     = 'channel';   // 'channel' | 'keyword'
   let currentDateDays = 0;           // 0 = 전체
+  let currentCount    = 50;          // 10 | 20 | 30 | 40 | 50
 
   /* ── Mode toggle ── */
   function setMode(mode) {
@@ -746,6 +789,13 @@
     document.querySelectorAll('.date-pill').forEach(p => p.classList.remove('active'));
     btn.classList.add('active');
     currentDateDays = parseInt(btn.dataset.days);
+  }
+
+  /* ── Count filter ── */
+  function setCountFilter(btn) {
+    document.querySelectorAll('.count-pill').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    currentCount = parseInt(btn.dataset.count);
   }
 
   function getPublishedAfter() {
@@ -858,7 +908,7 @@
         }
 
         setStatus(`"${keyword}" 키워드로 검색 중...`);
-        const searchUrl = `${YT_API}/search?part=snippet&q=${encodeURIComponent(keyword)}&order=viewCount&type=video&maxResults=50${dateParam}&key=${encodeURIComponent(apiKey)}`;
+        const searchUrl = `${YT_API}/search?part=snippet&q=${encodeURIComponent(keyword)}&order=viewCount&type=video&maxResults=${currentCount}${dateParam}&key=${encodeURIComponent(apiKey)}`;
         const searchData = await fetchJSON(searchUrl);
         videoIds = (searchData.items || []).map(item => item.id.videoId).filter(Boolean);
 
@@ -881,7 +931,7 @@
         const channelId = await resolveChannelId(rawInput, apiKey);
 
         setStatus('채널 영상 검색 중...');
-        const searchUrl = `${YT_API}/search?part=snippet&channelId=${encodeURIComponent(channelId)}&order=viewCount&type=video&maxResults=50${dateParam}&key=${encodeURIComponent(apiKey)}`;
+        const searchUrl = `${YT_API}/search?part=snippet&channelId=${encodeURIComponent(channelId)}&order=viewCount&type=video&maxResults=${currentCount}${dateParam}&key=${encodeURIComponent(apiKey)}`;
         const searchData = await fetchJSON(searchUrl);
         videoIds = (searchData.items || []).map(item => item.id.videoId).filter(Boolean);
 
