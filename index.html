@@ -357,6 +357,31 @@
       border-color: rgba(61, 255, 160, 0.4);
     }
 
+    .sort-pill {
+      background: transparent;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 1px;
+      padding: 5px 14px;
+      border: 1px solid var(--border2);
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-transform: uppercase;
+    }
+
+    .sort-pill:hover {
+      color: var(--text);
+      border-color: var(--gold-dim);
+    }
+
+    .sort-pill.active {
+      background: rgba(120, 180, 255, 0.1);
+      color: #7ab4ff;
+      border-color: rgba(120, 180, 255, 0.4);
+    }
+
     .btn-copy-single {
       background: transparent;
       color: var(--muted);
@@ -719,6 +744,12 @@
       <button class="count-pill active" data-count="50" onclick="setCountFilter(this)">TOP 50</button>
     </div>
 
+    <div class="date-filter">
+      <span class="date-filter-label">정렬 순서</span>
+      <button class="sort-pill active" data-sort="viewCount" onclick="setSortFilter(this)">조회수순</button>
+      <button class="sort-pill"        data-sort="date"      onclick="setSortFilter(this)">최신순</button>
+    </div>
+
     <div class="status-bar" id="statusBar">
       <div class="spinner" id="spinner"></div>
       <span id="statusText"></span>
@@ -771,6 +802,7 @@
   let currentMode     = 'channel';   // 'channel' | 'keyword'
   let currentDateDays = 0;           // 0 = 전체
   let currentCount    = 50;          // 10 | 20 | 30 | 40 | 50
+  let currentSort     = 'viewCount'; // 'viewCount' | 'date'
 
   /* ── Mode toggle ── */
   function setMode(mode) {
@@ -796,6 +828,13 @@
     document.querySelectorAll('.count-pill').forEach(p => p.classList.remove('active'));
     btn.classList.add('active');
     currentCount = parseInt(btn.dataset.count);
+  }
+
+  /* ── Sort filter ── */
+  function setSortFilter(btn) {
+    document.querySelectorAll('.sort-pill').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    currentSort = btn.dataset.sort;
   }
 
   function getPublishedAfter() {
@@ -908,7 +947,7 @@
         }
 
         setStatus(`"${keyword}" 키워드로 검색 중...`);
-        const searchUrl = `${YT_API}/search?part=snippet&q=${encodeURIComponent(keyword)}&order=viewCount&type=video&maxResults=${currentCount}${dateParam}&key=${encodeURIComponent(apiKey)}`;
+        const searchUrl = `${YT_API}/search?part=snippet&q=${encodeURIComponent(keyword)}&order=${currentSort}&type=video&maxResults=${currentCount}${dateParam}&key=${encodeURIComponent(apiKey)}`;
         const searchData = await fetchJSON(searchUrl);
         videoIds = (searchData.items || []).map(item => item.id.videoId).filter(Boolean);
 
@@ -931,7 +970,7 @@
         const channelId = await resolveChannelId(rawInput, apiKey);
 
         setStatus('채널 영상 검색 중...');
-        const searchUrl = `${YT_API}/search?part=snippet&channelId=${encodeURIComponent(channelId)}&order=viewCount&type=video&maxResults=${currentCount}${dateParam}&key=${encodeURIComponent(apiKey)}`;
+        const searchUrl = `${YT_API}/search?part=snippet&channelId=${encodeURIComponent(channelId)}&order=${currentSort}&type=video&maxResults=${currentCount}${dateParam}&key=${encodeURIComponent(apiKey)}`;
         const searchData = await fetchJSON(searchUrl);
         videoIds = (searchData.items || []).map(item => item.id.videoId).filter(Boolean);
 
@@ -947,7 +986,7 @@
       const statsUrl = `${YT_API}/videos?part=statistics,snippet&id=${videoIds.join(',')}&key=${encodeURIComponent(apiKey)}`;
       const statsData = await fetchJSON(statsUrl);
 
-      // Sort by viewCount
+      // Sort by selected order
       const videos = (statsData.items || []).map(item => ({
         id:        item.id,
         title:     item.snippet.title,
@@ -957,7 +996,11 @@
         published: item.snippet.publishedAt?.slice(0, 10) || '',
         url:       `https://www.youtube.com/watch?v=${item.id}`
       }));
-      videos.sort((a, b) => b.views - a.views);
+      if (currentSort === 'date') {
+        videos.sort((a, b) => b.published.localeCompare(a.published));
+      } else {
+        videos.sort((a, b) => b.views - a.views);
+      }
 
       renderResults(videos);
       hideStatus();
@@ -980,7 +1023,8 @@
     const modeLabel  = currentMode === 'keyword'
       ? `"${escapeHtml(document.getElementById('keywordInput').value.trim())}" 키워드 검색`
       : '채널 검색';
-    meta.innerHTML = `${modeLabel} &nbsp;·&nbsp; <strong>${videos.length}개</strong> 영상${dateLabel} &nbsp;·&nbsp; 최고 조회수 <strong>${formatViews(videos[0]?.views || 0)}</strong>`;
+    const sortLabel  = currentSort === 'date' ? '최신순' : '조회수순';
+    meta.innerHTML = `${modeLabel} &nbsp;·&nbsp; <strong>${videos.length}개</strong> 영상${dateLabel} &nbsp;·&nbsp; ${sortLabel} &nbsp;·&nbsp; 최고 조회수 <strong>${formatViews(videos[0]?.views || 0)}</strong>`;
 
     tbody.innerHTML = '';
     videos.forEach((v, i) => {
